@@ -1,3 +1,10 @@
+DÉPENDANCES REQUISES :
+npm install (--save) :
+                express
+                mongoose (connection à )
+                mongoose-unique-validator (plugin vérifiant l'unicitée d'un utilisateur pour la route POST .../signup)
+                bcrypt (hashage password)
+
 VERBS:        URI:                 BODY:                            RESPONSES:
 POST       auth/signup     {email:string, password}             {message:string}
 POST       auth/login      {email:string, password}             {userId:string, token:string}
