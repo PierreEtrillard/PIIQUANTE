@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/users");
+const token = require("jsonwebtoken");
 
 exports.createUser = (req, res, next) => {
   //10 passes de cryptages du mot de passe envoyé
@@ -25,21 +26,23 @@ exports.login = (req, res, next) => {
         });
       }
       bcrypt
-        .compare(req.body.password.user.password)
+        .compare(req.body.password,user.password)
         .then((valid) => {
           if (!valid) {
-            return res
-              .status(401)
-              .json({
-                messsage: "mot de passe ou nom d'utilisateur incorrect",
-              });
+            return res.status(401).json({
+              messsage: "mot de passe ou nom d'utilisateur incorrect",
+            });
           }
           res.status(200).json({
+            message :'Vous êtes connectez',
             userId: user._id,
-            token: "TOKEN",
+            token: token.sign(
+              { userId: user._id }
+              , "RANDOM_TOKEN_SECRET"
+              , {expiresIn: "1h" }),
           });
         })
         .catch((error) => res.status(500).json({ error }));
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(501).json({ error }));
 };
