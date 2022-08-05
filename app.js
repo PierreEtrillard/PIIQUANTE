@@ -3,14 +3,14 @@ const app = express();
 const mongoose = require('mongoose')
 const usersRoutes = require('./routes/users')
 const saucesRoutes = require('./routes/sauces')
+const path = require('path');
 
 mongoose.connect('mongodb+srv://pierre:4LWMeLzsTtEhM1pV@pricipal.tpemf.mongodb.net/?retryWrites=true&w=majority',{
     useNewUrlParser : true ,
     useUnifiedTopology :true
 })
 .then(()=>console.log("MongoDB connectée"))
-
-//***********************               ROUTES USERS             *************************/
+//***********************               ROUTES             *************************/
 app.use(express.json())
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,5 +20,6 @@ app.use((req, res, next) => {
   });
 app.use('/api/auth',usersRoutes)
 app.use('/api/sauces',saucesRoutes)
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 module.exports = app;
