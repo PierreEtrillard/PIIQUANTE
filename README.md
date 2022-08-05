@@ -4,6 +4,7 @@ npm install (--save) :
                 mongoose (connection à )
                 mongoose-unique-validator (plugin vérifiant l'unicitée d'un utilisateur pour la route POST .../signup)
                 bcrypt (hashage password)
+                jsonwebtoken (créateur de jetons d'identification)
 
 VERBS:        URI:                 BODY:                            RESPONSES:
 POST       auth/signup     {email:string, password}             {message:string}
