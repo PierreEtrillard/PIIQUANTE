@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const Sauces = mongoose.Schema({
-  userId: { type: String, required: true },
-  name: { type: String, required: true },
+  userId: { type: String },
+  name: { type: String },
   manufacturer: { type: String },
-  description: { type: String, required: true },
-  mainPepper: { type: String, required: true },
+  description: { type: String },
+  mainPepper: { type: String },
   imageUrl: { type: String },
-  heat: { type: Number, required: true },
+  heat: { type: Number },
   likes: { type: Number },
   dislikes: { type: Number },
   usersLiked: { type: String },
