@@ -70,10 +70,12 @@ exports.deleteSauce = (req, res, next) => {
       });
     });
 };
+
 exports.likeSauce = (req, res, next) => {
-  Sauce.findOne()
+  Sauce.updateOne({_id: req.params.id})
     .then((sauce) => {
       res.status(200).json(sauce);
+      console.log(sauce);
     })
     .catch((error) => {
       res.status(400).json({

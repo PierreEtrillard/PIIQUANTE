@@ -7,8 +7,8 @@ const router = express.Router();
 router.post('/', auth, multer, ctrlSauces.createSauce)
 router.get('/',ctrlSauces.getAllSauces)
 router.get('/:id',ctrlSauces.getSauce)
-router.put('/:id/like',auth, ctrlSauces.likeSauce)
-router.put('/:id',auth, ctrlSauces.ModifySauce)
+router.put('/:id/like', auth, ctrlSauces.likeSauce)
+router.put('/:id',auth, multer, ctrlSauces.ModifySauce)
 router.delete('/:id',auth, ctrlSauces.deleteSauce)
 
 module.exports = router
