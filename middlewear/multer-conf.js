@@ -4,8 +4,6 @@ const MIME_TYPES = {
   'image/jpg': 'jpg',
   'image/jpeg': 'jpg',
   'image/png': 'png',
-  'image/bmp': 'bmp',
-  'image/webp': 'webp'
 };
 
 const storage = multer.diskStorage({
@@ -17,7 +15,7 @@ const storage = multer.diskStorage({
   filename: (req, file, callback) => {
     //convertis les espaces en _ dans le nom de fichier original 
     const name = file.originalname.split(' ').join('_');
-    //récuppère le type MIME du fichier
+    //récupère le type MIME du fichier
     const extension = MIME_TYPES[file.mimetype];
     //construit le nouveau nom : "sans_espaceDate.type"
     callback(null, name + Date.now() + '.' + extension);

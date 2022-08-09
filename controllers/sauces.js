@@ -1,27 +1,10 @@
 const Sauce = require("../models/sauces");
-
-exports.createSauce = (req, res, next) => {
-  const sauceObject = JSON.parse(req.body.sauce);
-  delete sauceObject._id;
-  const sauce = new Sauce({ ...sauceObject,
-  userId: req.auth.userId,
-imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`});
-  sauce
-    .save()
-    .then(() => res.status(201).json({ message: "Recette ajoutée !" }))
-    .catch((error) => res.status(400).json({ message: error }));
-};
-// exports.likeSauce = (req, res, next) => {
-//   const likeThis = Sauce.updateOne({ _id: req.params.id }, { req.body, _id: req.params._id })
-//     .then(() => {++likeThis.likes}
-//       res.status(200).json("Sauce likée");
-//     })
-//     .catch((error) => {
-//       res.status(400).json({
-//         error: error,
-//       });
-//     });
-// };
+const fs = require("fs");
+/* --- ASTUCE!: les middlewears suivant utilisent des spread (fr:décomposition) : '...'
+cette synthaxe permet d'appeler tous les itérables de tableau ou d'objets (toutes les 
+clés de chaque sauces requétées dans notre cas). Pour plus d'expliquations, voir :
+https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Operators/Spread_syntax#exemple_interactif
+--- */
 
 exports.getAllSauces = (req, res, next) => {
   Sauce.find()
@@ -36,7 +19,7 @@ exports.getAllSauces = (req, res, next) => {
 };
 
 exports.getSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id})
+  Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       res.status(200).json(sauce);
     })
@@ -47,35 +30,87 @@ exports.getSauce = (req, res, next) => {
     });
 };
 
+exports.createSauce = (req, res, next) => {
+  //la requète est convertis en form/data(String) par mutler il faut donc la parser
+  const sauceObject = JSON.parse(req.body.sauce);
+  //Suppression de l'userId reçu du client par sécurité
+  delete sauceObject._id;
+  const sauce = new Sauce({
+    ...sauceObject,
+    //Réccupération de l'userId dans le jeton d'authorization (req.auth)
+    userId: req.auth.userId,
+    //Construction de l'URL pour stocker l'image dans le dossier pointé par le middlewear multer-conf.js
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
+  });
+  sauce
+    .save()
+    .then(() => res.status(201).json({ message: "Recette ajoutée !" }))
+    .catch((error) => res.status(400).json({ message: error }));
+};
+
 exports.ModifySauce = (req, res, next) => {
-  Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params._id })
-    .then(() => {
-      res.status(200).json("Modification enregistrée");
+  //Test si la requète contient un fichier (= stringifié par multer), parser et traiter celle-ci à la maniére du middlewear précédent (createSauce)
+  console.log(req.file);
+  const sauceObject = req.file
+    ? {
+        ...JSON.parse(req.body.sauce),
+        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          req.file.filename
+        }`,
+      } //Sinon récupération du corps de la requète
+    : { ...req.body };
+
+  delete sauceObject._userId; //sécurité ! (cf middlewear précédent (createSauce))
+  //Ciblage de la sauce à modifier avec l'id présent dans l'url
+  Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      if (sauce.userId != req.auth.userId) {
+        //si tentative de modification de la sauce d'un autre user:
+        res.satus(401).json({ message: "Non-autorisé !" });
+      } else {
+        //Sinon :updateOne({objet à cibler dans la BDD}, {nouvelle version, correspondante à l'id déclaré ds le 1er paramètre})
+        Sauce.updateOne(
+          { _id: req.params.id },
+          { ...sauceObject, _id: req.params.id }
+        )
+          .then(() => res.status(200).json({ message: "Sauce mise à jour !" }))
+          .catch((error) => res.satus(401).json({ error }));
+      }
     })
     .catch((error) => {
-      res.status(400).json({
-        error: error,
-      });
+      res.satus(400).json({ error });
     });
 };
 
 exports.deleteSauce = (req, res, next) => {
-  Sauce.deleteOne({_id: req.params.id})
-    .then(() => {
-      res.status(200).json("Sauce supprimée");
-    })
-    .catch((error) => {
-      res.status(400).json({
-        error,
-      });
-    });
+  //Ciblage de la sauce à modifier avec l'id présent dans l'url.
+  Sauce.findOne({ _id: req.params.id })
+  .then(sauce => {
+    //Test si la requète ne provient pas du propriétaire de la sauce.
+    if (sauce.userId != req.auth.userId) {
+      res.status(401).json({ message: "Non-autorisé !" });
+    } //Si la requète provient bien du propriétaire: récupération du nom du fichier,
+    else {
+      const filename = sauce.imageUrl.split("/images/")[1];
+      //supression du fichier image,
+      fs.unlink(`images/${filename}`,
+        //puis suppression définitive de l'objet/sauce dans la BDD.
+        ()=> {
+          Sauce.deleteOne({ _id: req.params.id })
+            .then(() => { res.status(200).json({ message: "Sauce supprimée" }); })
+            .catch((error) => { res.status(400).json({ error }); });
+        });
+    }
+  });
 };
 
 exports.likeSauce = (req, res, next) => {
-  Sauce.updateOne({_id: req.params.id})
+  Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       res.status(200).json(sauce);
-      console.log(sauce);
+      console.log(++sauce.likes);
     })
     .catch((error) => {
       res.status(400).json({
