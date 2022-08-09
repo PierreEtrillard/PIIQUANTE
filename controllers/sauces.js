@@ -37,7 +37,7 @@ exports.createSauce = (req, res, next) => {
   delete sauceObject._id;
   const sauce = new Sauce({
     ...sauceObject,
-    //Réccupération de l'userId dans le jeton d'authorization (req.auth)
+    //Récupération de l'userId dans le jeton d'authorization (req.auth)
     userId: req.auth.userId,
     //Construction de l'URL pour stocker l'image dans le dossier pointé par le middlewear multer-conf.js
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
@@ -51,8 +51,7 @@ exports.createSauce = (req, res, next) => {
 };
 
 exports.ModifySauce = (req, res, next) => {
-  //Test si la requète contient un fichier (= stringifié par multer), parser et traiter celle-ci à la maniére du middlewear précédent (createSauce)
-  console.log(req.file);
+  //Test si la requète contient un fichier (= stringifié par multer), parser et traiter celle-ci à la maniére du middlewear précédent (createSauce).
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),
@@ -86,8 +85,7 @@ exports.ModifySauce = (req, res, next) => {
 
 exports.deleteSauce = (req, res, next) => {
   //Ciblage de la sauce à modifier avec l'id présent dans l'url.
-  Sauce.findOne({ _id: req.params.id })
-  .then(sauce => {
+  Sauce.findOne({ _id: req.params.id }).then((sauce) => {
     //Test si la requète ne provient pas du propriétaire de la sauce.
     if (sauce.userId != req.auth.userId) {
       res.status(401).json({ message: "Non-autorisé !" });
@@ -95,13 +93,19 @@ exports.deleteSauce = (req, res, next) => {
     else {
       const filename = sauce.imageUrl.split("/images/")[1];
       //supression du fichier image,
-      fs.unlink(`images/${filename}`,
+      fs.unlink(
+        `images/${filename}`,
         //puis suppression définitive de l'objet/sauce dans la BDD.
-        ()=> {
+        () => {
           Sauce.deleteOne({ _id: req.params.id })
-            .then(() => { res.status(200).json({ message: "Sauce supprimée" }); })
-            .catch((error) => { res.status(400).json({ error }); });
-        });
+            .then(() => {
+              res.status(200).json({ message: "Sauce supprimée" });
+            })
+            .catch((error) => {
+              res.status(400).json({ error });
+            });
+        }
+      );
     }
   });
 };
@@ -109,12 +113,30 @@ exports.deleteSauce = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      res.status(200).json(sauce);
-      console.log(++sauce.likes);
+      const likersId = sauce.usersLiked;
+      const disLikersId = sauce.usersDisliked;
+      const userAppreciation = req.body.like;
+      switch (userAppreciation) {
+        case 1:
+          likersId.push(`${req.body.userId}`);
+
+          console.log("liked"+likersId);
+          break;
+        case -1:
+          disLikersId.push(req.body.userId);
+          console.log("dislike");
+          break;
+        case 0:
+          console.log("plus qu'a effacer les id ");
+          // LikersId.delete(req.body.userId)
+          // dislikersId.delete(req.body.userId)
+          break;
+      }
+      res.status(200).json({ message: "appréciation enregistrée" });
     })
     .catch((error) => {
       res.status(400).json({
-        error: error,
+        error,
       });
     });
 };

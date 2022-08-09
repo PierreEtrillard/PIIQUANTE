@@ -39,7 +39,7 @@ exports.login = (req, res, next) => {
             token: tokenManager.sign(
               { userId: user._id }
               , "RANDOM_TOKEN_SECRET"
-              , {expiresIn: "1h" })
+              , {expiresIn: "3h" })
           });
         })
         .catch((error) => res.status(500).json({ error }));
