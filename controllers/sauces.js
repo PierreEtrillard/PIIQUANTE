@@ -50,7 +50,7 @@ exports.createSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ message: error }));
 };
 
-exports.ModifySauce = (req, res, next) => {
+exports.modifySauce = (req, res, next) => {
   //Test si la requète contient un fichier (= stringifié par multer), parser et traiter celle-ci à la maniére du middlewear précédent (createSauce).
   const sauceObject = req.file
     ? {
@@ -111,27 +111,32 @@ exports.deleteSauce = (req, res, next) => {
 };
 
 exports.likeSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id })
+  Sauce.findById(req.params.id)
     .then((sauce) => {
-      const likersId = sauce.usersLiked;
-      const disLikersId = sauce.usersDisliked;
-      const userAppreciation = req.body.like;
-      switch (userAppreciation) {
-        case 1:
-          likersId.push(`${req.body.userId}`);
+      let likersId = sauce.usersLiked;
+      let dislikersId = sauce.usersDisliked;
 
-          console.log("liked"+likersId);
+      switch (req.body.like) {
+        case 1:
+          likersId.push(req.body.userId);
+          sauce.likes = likersId.length;
+          console.log("dislikersId avant filter : " +dislikersId.length);
+          dislikersId = dislikersId.filter(idList => idList != req.body.userId);
+          console.log("dislikersId après filter : " +dislikersId.length);
           break;
         case -1:
-          disLikersId.push(req.body.userId);
-          console.log("dislike");
+          dislikersId.push(req.body.userId);
+          sauce.dislikes = dislikersId.length;
+          console.log("likersId avant filter : " +likersId.length);
+          likersId = likersId.filter(idList => idList !== req.body.userId);
+          console.log("likersId après filter : " +likersId.length);
           break;
         case 0:
-          console.log("plus qu'a effacer les id ");
-          // LikersId.delete(req.body.userId)
-          // dislikersId.delete(req.body.userId)
+          likersId = likersId.filter(idList => idList !== req.body.userId);
+          dislikersId = dislikersId.filter(idList => idList !== req.body.userId);
           break;
       }
+      sauce.save().then((result) => console.log(result));
       res.status(200).json({ message: "appréciation enregistrée" });
     })
     .catch((error) => {
