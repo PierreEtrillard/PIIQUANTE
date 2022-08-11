@@ -43,6 +43,9 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`,
+    //ajout des propriétés likes/dislikes réglées à 0
+    likes: 0,
+    dislikes: 0,
   });
   sauce
     .save()
@@ -113,31 +116,42 @@ exports.deleteSauce = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
   Sauce.findById(req.params.id)
     .then((sauce) => {
-      let likersId = sauce.usersLiked;
-      let dislikersId = sauce.usersDisliked;
+      let likersIds = sauce.usersLiked;
+      let dislikersIds = sauce.usersDisliked;
+      function appreciationsEraser(appreciation) {
+        appreciation = appreciation.filter(
+          (idList) => idList !== req.body.userId
+        );
+      }
+      likersIds = likersIds.filter(
+        (idList) => idList !== req.body.userId
+      );
+      dislikersIds = dislikersIds.filter(
+        (idList) => idList !== req.body.userId
+      );
+    
 
+      console.log("dislikersId avant switch : " + dislikersIds.length);
+      console.log("likersId avant switch : " + likersIds.length);
       switch (req.body.like) {
         case 1:
-          likersId.push(req.body.userId);
-          sauce.likes = likersId.length;
-          console.log("dislikersId avant filter : " +dislikersId.length);
-          dislikersId = dislikersId.filter(idList => idList != req.body.userId);
-          console.log("dislikersId après filter : " +dislikersId.length);
+          likersIds.push(req.body.userId);
+          sauce.likes = likersIds.length;
           break;
         case -1:
-          dislikersId.push(req.body.userId);
-          sauce.dislikes = dislikersId.length;
-          console.log("likersId avant filter : " +likersId.length);
-          likersId = likersId.filter(idList => idList !== req.body.userId);
-          console.log("likersId après filter : " +likersId.length);
+          dislikersIds.push(req.body.userId);
+          sauce.dislikes = dislikersIds.length;
           break;
         case 0:
-          likersId = likersId.filter(idList => idList !== req.body.userId);
-          dislikersId = dislikersId.filter(idList => idList !== req.body.userId);
+          sauce.dislikes = dislikersIds.length;
+          sauce.likes = likersIds.length;
           break;
       }
-      sauce.save().then((result) => console.log(result));
-      res.status(200).json({ message: "appréciation enregistrée" });
+      console.log("dislikersId après switch : " + dislikersIds.length);
+      console.log("likersId après switch : " + likersIds.length);
+      sauce
+        .save()
+        .then(res.status(200).json({ message: "appréciation enregistrée" }));
     })
     .catch((error) => {
       res.status(400).json({
