@@ -118,37 +118,25 @@ exports.likeSauce = (req, res, next) => {
     .then((sauce) => {
       let likersIds = sauce.usersLiked;
       let dislikersIds = sauce.usersDisliked;
-      function appreciationsEraser(appreciation) {
-        appreciation = appreciation.filter(
-          (idList) => idList !== req.body.userId
-        );
-      }
-      likersIds = likersIds.filter(
-        (idList) => idList !== req.body.userId
-      );
+      // Suppression de l'userId si déja présent dans les tableaux: usersLiked et usersDisliked
+      likersIds = likersIds.filter((idList) => idList !== req.body.userId);
       dislikersIds = dislikersIds.filter(
         (idList) => idList !== req.body.userId
       );
-    
-
-      console.log("dislikersId avant switch : " + dislikersIds.length);
-      console.log("likersId avant switch : " + likersIds.length);
       switch (req.body.like) {
-        case 1:
+        case 1: // l'utilissateur like la sauce
           likersIds.push(req.body.userId);
           sauce.likes = likersIds.length;
           break;
-        case -1:
+        case -1: // l'utilissateur dislike la sauce
           dislikersIds.push(req.body.userId);
           sauce.dislikes = dislikersIds.length;
           break;
-        case 0:
+        case 0: // l'utilissateur retire son vote
           sauce.dislikes = dislikersIds.length;
           sauce.likes = likersIds.length;
           break;
       }
-      console.log("dislikersId après switch : " + dislikersIds.length);
-      console.log("likersId après switch : " + likersIds.length);
       sauce
         .save()
         .then(res.status(200).json({ message: "appréciation enregistrée" }));
