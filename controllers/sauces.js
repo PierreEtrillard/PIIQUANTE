@@ -79,7 +79,7 @@ exports.modifySauce = (req, res, next) => {
           console.log("nouvelle adresse de l'image");
         })
         .then(() => {
-          //3 supression de l'ancienne image. (uniquement si mise à jour de l'url de la nouvelle image réutreat)
+          //3 supression de l'ancienne image. (uniquement après mise à jour de l'url de la nouvelle image)
           fs.unlinkSync(`images/${oldPic}`);
           console.log("Ancienne image supprimée !");
         })

@@ -1,10 +1,12 @@
 ************************   PRÉPARATION DU SERVER  ************************
 
-1) Créer un fichier .env contenant les entrées suivante:
+1) Créer un fichier .env contenant les entrées suivantes:
     mongoLogin = "<votre nom d'utilisateur MongoDb>:<votre mot de passe MongoDb>"
 
     //Par defaut le server tourne sur le port 3000, vous pouvez choisir un port différent en renseignant:
-    PORT = le numéro de port de votre choix 
+
+    PORT = *le numéro de port de votre choix* 
+    (verifiez aussi que l'appli front requète vers le même port) 
 
 2) Installer les modules node suivants depuis le dossier BACK:
 
@@ -15,7 +17,7 @@ Description des modules à installer :
                 dotenv (gestionnaire des variables d'environement)
                 express (server node)
                 mongoose (connection à MongoDb )
-                mongoose-unique-validator (plugin vérifiant l'unicitée d'un utilisateur pour la route POST .../signup)
+                mongoose-unique-validator (plugin vérifiant l'unicitée d'un utilisateur pour la route POST ../signup)
                 bcrypt (hashage password)
                 jsonwebtoken (créateur de jetons d'identification)
                 multer (gestion des téléchargements de fichiers)
