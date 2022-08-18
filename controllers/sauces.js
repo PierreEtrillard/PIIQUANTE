@@ -57,58 +57,65 @@ exports.createSauce = (req, res, next) => {
 };
 
 exports.modifySauce = (req, res, next) => {
-  let sauceObject = {}; //Contenaire du corps de requéte
   //Test si la requète contient un fichier form/data (= stringifié par multer):
   const isMulterReq = req.file ? true : false;
-
-  let oldPic = null;
-  if (isMulterReq) {
-    //si true (requète à parser et image à modifier):
-    //1 recupérer le chemin de l'ancienne image,
-    Sauce.findOne({ _id: req.params.id })
-      .then((oldSauce) => {
-        oldPic = oldSauce.imageUrl.split("/images/")[1];
-        //2 parser la requète et mettre à jour le chemin vers la nouvelle image,
-        sauceObject = {
-          ...JSON.parse(req.body.sauce),
-          imageUrl: `${req.protocol}://${req.get("host")}/images/${
-            req.file.filename
-          }`,
-        };
-        //3 supression de l'ancienne image.
-        fs.unlink(`images/${oldPic}`, (err) => {
-          if (err) throw err;
+  let sauceObject = {}; //Contenaire du corps de requéte
+  let oldPic = null;//Contenaire du corps de requéte
+  async function getReq() {
+    if (isMulterReq) {
+      //si true (requète à parser et image à modifier):
+      //1 recupérer le chemin de l'ancienne image,
+      console.log("début de la fonction asynchrone");
+      Sauce.findOne({ _id: req.params.id })
+        .then((oldSauce) => {
+          oldPic = oldSauce.imageUrl.split("/images/")[1];
+          //2 parser la requète et mettre à jour le chemin vers la nouvelle image,
+          sauceObject = {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get("host")}/images/${
+              req.file.filename
+            }`,
+          };
+          console.log("nouvelle adresse de l'image");
+        })
+        .then(() => {
+          //3 supression de l'ancienne image. (uniquement si mise à jour de l'url de la nouvelle image réussi)
+          fs.unlinkSync(`images/${oldPic}`);
           console.log("Ancienne image supprimée !");
+        })
+        .catch((error) => {
+          res.satus(400).json({ error });
         });
+    } else {
+      //Si la requète ne contient pas de modification d'image ()
+      sauceObject = { ...req.body };
+    }
+  }
+  getReq().then(() => {
+    delete sauceObject._userId; //ne pas faire confiance à l'userId de la requète !
+    //Ciblage de la sauce à modifier avec l'id présent dans l'url
+    Sauce.findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (sauce.userId != req.auth.userId) {
+          //si tentative de modification de la sauce d'un autre user:
+          res.satus(401).json({ message: "Non-autorisé !" });
+        } else {
+          //Sinon :updateOne({objet à cibler dans la BDD}, {nouvelle version, correspondante à l'id déclaré ds le 1er paramètre})
+          Sauce.updateOne(
+            { _id: req.params.id },
+            { ...sauceObject, _id: req.params.id }
+          )
+            .then(
+              () => console.log("all updated !"),
+              res.status(200).json({ message: "Sauce mise à jour !" })
+            )
+            .catch((error) => res.satus(401).json({ error }));
+        }
       })
       .catch((error) => {
         res.satus(400).json({ error });
       });
-  } else {
-    //Si la requète ne contient pas de modification d'image ()
-    sauceObject = { ...req.body };
-  }
-
-  delete sauceObject._userId; //sécurité ! (cf middlewear précédent (createSauce))
-  //Ciblage de la sauce à modifier avec l'id présent dans l'url
-  Sauce.findOne({ _id: req.params.id })
-    .then((sauce) => {
-      if (sauce.userId != req.auth.userId) {
-        //si tentative de modification de la sauce d'un autre user:
-        res.satus(401).json({ message: "Non-autorisé !" });
-      } else {
-        //Sinon :updateOne({objet à cibler dans la BDD}, {nouvelle version, correspondante à l'id déclaré ds le 1er paramètre})
-        Sauce.updateOne(
-          { _id: req.params.id },
-          { ...sauceObject, _id: req.params.id }
-        )
-          .then(() => res.status(200).json({ message: "Sauce mise à jour !" }))
-          .catch((error) => res.satus(401).json({ error }));
-      }
-    })
-    .catch((error) => {
-      res.satus(400).json({ error });
-    });
+  });
 };
 
 exports.deleteSauce = (req, res, next) => {
@@ -159,8 +166,7 @@ exports.likeSauce = (req, res, next) => {
       }
       sauce.usersLiked = likersIds;
       sauce.usersDisliked = dislikersIds;
-      sauce.save()
-      .then(() => {
+      sauce.save().then(() => {
         res.status(200).json({ message: "appréciation enregistrée" });
       });
     })
