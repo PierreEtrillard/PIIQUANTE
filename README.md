@@ -1,12 +1,39 @@
+************************   PRÉPARATION DU SERVER  ************************
+
+1) Créer un fichier .env contenant les entrées suivante:
+    mongoLogin = "<votre nom d'utilisateur MongoDb>:<votre mot de passe MongoDb>"
+
+    //Par defaut le server tourne sur le port 3000, vous pouvez choisir un port différent en renseignant:
+    PORT = le numéro de port de votre choix 
+
+2) Installer les modules node suivants depuis le dossier BACK:
+
 DÉPENDANCES REQUISES :
-npm install (--save) :
-                express
-                mongoose (connection à )
+npm install --save dotenv express mongoose mongoose-unique-validator bcrypt jsonwebtoken multer fs
+
+Description des modules à installer :
+                dotenv (gestionnaire des variables d'environement)
+                express (server node)
+                mongoose (connection à MongoDb )
                 mongoose-unique-validator (plugin vérifiant l'unicitée d'un utilisateur pour la route POST .../signup)
                 bcrypt (hashage password)
                 jsonwebtoken (créateur de jetons d'identification)
                 multer (gestion des téléchargements de fichiers)
                 fs (gestionaire de fichiers)
+
+3) Pour démarrer le server saisissez :
+
+npm run start
+    ou
+node server
+    ou
+nodemon (si installé)
+
+************************   EN PHASE DE PRODUCTION  ************************
+Avant déploiement, la chaine 'RANDOM_TOKEN_SECRET' (ligne 6 du fichier auth.js et ligne 41 du controller users.js) 
+sera à remplacer par une chaine aléatoire plus longue.
+
+************************   DÉTAILS DES ROUTES   ************************ 
 
 VERBS:        URI:                 BODY:                            RESPONSES:
 POST       auth/signup     {email:string, password}             {message:string}
@@ -18,3 +45,4 @@ PUT        sauces/{id}     JSON{sauce:string, image:file}       {message:string}
                                    
 DELETE     sauces/{id}               -                          {message:string}
 POST       sauces/         {userId:string, like:number}         {message:string}
+

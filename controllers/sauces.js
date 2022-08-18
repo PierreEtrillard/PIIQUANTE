@@ -22,6 +22,8 @@ exports.getAllSauces = (req, res, next) => {
 exports.getSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
+      sauce.dislikes = sauce.usersDisliked.length;
+      sauce.likes = sauce.usersLiked.length;
       res.status(200).json(sauce);
     })
     .catch((error) => {
@@ -55,31 +57,37 @@ exports.createSauce = (req, res, next) => {
 };
 
 exports.modifySauce = (req, res, next) => {
- 
-  let sauceObject = {};//Contenaire du corps de requéte
+  let sauceObject = {}; //Contenaire du corps de requéte
   //Test si la requète contient un fichier form/data (= stringifié par multer):
-  const isMulterReq = req.file ? true :  false ;
+  const isMulterReq = req.file ? true : false;
 
-  if (isMulterReq ){ //si true (requète à parser et image à modifier):
+  let oldPic = null;
+  if (isMulterReq) {
+    //si true (requète à parser et image à modifier):
     //1 recupérer le chemin de l'ancienne image,
-    let oldPic = null
     Sauce.findOne({ _id: req.params.id })
-    .then((oldSauce) => {
-      oldPic = oldSauce.imageUrl.split("/images/")[1];
-    //2 parser la requète et mettre à jour le chemin vers la nouvelle image,
-    sauceObject =  {...JSON.parse(req.body.sauce),  
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${ req.file.filename}`};
-    //3 supression de l'ancienne image.
-      fs.unlink(`images/${oldPic}`,(err) => {
-        if (err) throw err;
-        console.log('Ancienne image supprimée !');
-     })}
-      )
+      .then((oldSauce) => {
+        oldPic = oldSauce.imageUrl.split("/images/")[1];
+        //2 parser la requète et mettre à jour le chemin vers la nouvelle image,
+        sauceObject = {
+          ...JSON.parse(req.body.sauce),
+          imageUrl: `${req.protocol}://${req.get("host")}/images/${
+            req.file.filename
+          }`,
+        };
+        //3 supression de l'ancienne image.
+        fs.unlink(`images/${oldPic}`, (err) => {
+          if (err) throw err;
+          console.log("Ancienne image supprimée !");
+        });
+      })
       .catch((error) => {
         res.satus(400).json({ error });
       });
-  } else {   //Si la requète ne contient pas de modification d'image ()
-    sauceObject = {...req.body}}
+  } else {
+    //Si la requète ne contient pas de modification d'image ()
+    sauceObject = { ...req.body };
+  }
 
   delete sauceObject._userId; //sécurité ! (cf middlewear précédent (createSauce))
   //Ciblage de la sauce à modifier avec l'id présent dans l'url
@@ -151,9 +159,8 @@ exports.likeSauce = (req, res, next) => {
       }
       sauce.usersLiked = likersIds;
       sauce.usersDisliked = dislikersIds;
-      sauce.dislikes = dislikersIds.length;
-      sauce.likes = likersIds.length;
-      sauce.save().then(() => {
+      sauce.save()
+      .then(() => {
         res.status(200).json({ message: "appréciation enregistrée" });
       });
     })

@@ -4,12 +4,17 @@ const mongoose = require('mongoose')
 const usersRoutes = require('./routes/users')
 const saucesRoutes = require('./routes/sauces')
 const path = require('path');
+// récupperation des identifiants de connection dans le fichier '.env'
+const dotenv = require("dotenv");
+dotenv.config()
+const mongoPwd = process.env.mongoLogin
 
-mongoose.connect('mongodb+srv://pierre:4LWMeLzsTtEhM1pV@pricipal.tpemf.mongodb.net/?retryWrites=true&w=majority',{
+mongoose.connect(`mongodb+srv://${mongoPwd}@pricipal.tpemf.mongodb.net/?retryWrites=true&w=majority`,{
     useNewUrlParser : true ,
     useUnifiedTopology :true
 })
 .then(()=>console.log("MongoDB connectée"))
+.catch((err)=>{console.error(err)})
 //***********************               ROUTES             *************************/
 app.use(express.json())
 app.use((req, res, next) => {
