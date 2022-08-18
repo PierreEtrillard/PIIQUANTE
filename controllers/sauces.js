@@ -61,7 +61,7 @@ exports.modifySauce = (req, res, next) => {
   const isMulterReq = req.file ? true : false;
   let sauceObject = {}; //Contenaire du corps de requéte
   let oldPic = null;//Contenaire du corps de requéte
-  async function getReq() {
+  async function treatReq() {
     if (isMulterReq) {
       //si true (requète à parser et image à modifier):
       //1 recupérer le chemin de l'ancienne image,
@@ -79,7 +79,7 @@ exports.modifySauce = (req, res, next) => {
           console.log("nouvelle adresse de l'image");
         })
         .then(() => {
-          //3 supression de l'ancienne image. (uniquement si mise à jour de l'url de la nouvelle image réussi)
+          //3 supression de l'ancienne image. (uniquement si mise à jour de l'url de la nouvelle image réutreat)
           fs.unlinkSync(`images/${oldPic}`);
           console.log("Ancienne image supprimée !");
         })
@@ -91,7 +91,8 @@ exports.modifySauce = (req, res, next) => {
       sauceObject = { ...req.body };
     }
   }
-  getReq().then(() => {
+  //Sauvegarde dans la BDD
+  treatReq().then(() => {
     delete sauceObject._userId; //ne pas faire confiance à l'userId de la requète !
     //Ciblage de la sauce à modifier avec l'id présent dans l'url
     Sauce.findOne({ _id: req.params.id })
