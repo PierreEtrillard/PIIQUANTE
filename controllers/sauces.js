@@ -46,9 +46,6 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`,
-    //ajout des propriétés likes/dislikes réglées à 0
-    likes: 0,
-    dislikes: 0,
   });
   sauce
     .save()
@@ -56,67 +53,33 @@ exports.createSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ message: error }));
 };
 
-exports.modifySauce = (req, res, next) => {
+exports.modifySauce = async (req, res, next) => {
+  const sauceTargeted = await Sauce.findById(req.params.id);
+  let sauceUpdate = {};//Contiendra le corp de requète
   //Test si la requète contient un fichier form/data (= stringifié par multer):
-  const isMulterReq = req.file ? true : false;
-  let sauceObject = {}; //Contenaire du corps de requéte
-  let oldPic = null;//Contenaire du corps de requéte
-  async function treatReq() {
-    if (isMulterReq) {
-      //si true (requète à parser et image à modifier):
-      //1 recupérer le chemin de l'ancienne image,
-      console.log("début de la fonction asynchrone");
-      Sauce.findOne({ _id: req.params.id })
-        .then((oldSauce) => {
-          oldPic = oldSauce.imageUrl.split("/images/")[1];
-          //2 parser la requète et mettre à jour le chemin vers la nouvelle image,
-          sauceObject = {
-            ...JSON.parse(req.body.sauce),
-            imageUrl: `${req.protocol}://${req.get("host")}/images/${
-              req.file.filename
-            }`,
-          };
-          console.log("nouvelle adresse de l'image");
-        })
-        .then(() => {
-          //3 supression de l'ancienne image. (uniquement après mise à jour de l'url de la nouvelle image)
-          fs.unlinkSync(`images/${oldPic}`);
-          console.log("Ancienne image supprimée !");
-        })
-        .catch((error) => {
-          res.satus(400).json({ error });
-        });
+  if (req.file) {
+    //supression de l'ancienne image.
+    let oldPic = sauceTargeted.imageUrl.split("/images/")[1];
+    fs.unlinkSync(`images/${oldPic}`);
+    //Parser la requète et mise à jour de l'URL de la nouvelle image
+    sauceUpdate = { ...JSON.parse(req.body.sauce) };
+    sauceUpdate.imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+  } else {
+    if (sauceTargeted.userId != req.auth.userId) {
+      //si tentative de modification de la sauce d'un autre user:
+      res.satus(403).json({ message: "Non-autorisé !" });
     } else {
-      //Si la requète ne contient pas de modification d'image ()
-      sauceObject = { ...req.body };
+      sauceUpdate = { ...req.body };
     }
   }
-  //Sauvegarde dans la BDD
-  treatReq().then(() => {
-    delete sauceObject._userId; //ne pas faire confiance à l'userId de la requète !
-    //Ciblage de la sauce à modifier avec l'id présent dans l'url
-    Sauce.findOne({ _id: req.params.id })
-      .then((sauce) => {
-        if (sauce.userId != req.auth.userId) {
-          //si tentative de modification de la sauce d'un autre user:
-          res.satus(401).json({ message: "Non-autorisé !" });
-        } else {
-          //Sinon :updateOne({objet à cibler dans la BDD}, {nouvelle version, correspondante à l'id déclaré ds le 1er paramètre})
-          Sauce.updateOne(
-            { _id: req.params.id },
-            { ...sauceObject, _id: req.params.id }
-          )
-            .then(
-              () => console.log("all updated !"),
-              res.status(200).json({ message: "Sauce mise à jour !" })
-            )
-            .catch((error) => res.satus(401).json({ error }));
-        }
-      })
-      .catch((error) => {
-        res.satus(400).json({ error });
-      });
-  });
+  delete sauceUpdate.userId; //Ne pas faire confiance à l'userId de la requète !
+  //Sauvegarde de la mise à jour dans la base de données:
+  Sauce.updateOne(
+    { _id: req.params.id },
+    { ...sauceUpdate, _id: req.params.id } //réécrire l'_id présent dans l'url pour le cas ou un autre _id serait inséré dans le body..
+  )
+    .then(res.status(200).json({ message: "Sauce mise à jour !" }))
+    .catch((error) => res.satus(400).json({ error }));
 };
 
 exports.deleteSauce = (req, res, next) => {

@@ -1,6 +1,9 @@
-mongoLogin = 'franck:Mot2P@SSfictif256worD'
+#//*** Renseignez correctement et décommentez les lignes suivantes et indiquez un port libre si le 3000 est déja utiliser:
 
-#*** Décommentez la ligne suivante et indiquez un port libre si le 3000 est déja utiliser:
-# PORT = *numero de port libre*
+#mongoLogin = 'franck:Mot2P@SSfictif256worD'
 
-# ! Veillez également à mettre à jour l'appli front afin qu'elle requète sur le bon port si besoin...
+#//****! FACULTATIF : (uniquement si le 3000 est déja utiliser)
+#//*** Pensez aussi à mettre à jour l'appli front afin qu'elle requète sur le bon port si besoin...
+#PORT = *numero de port libre*
+
+TOKEN_KEY: 
