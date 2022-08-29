@@ -8,6 +8,8 @@
     PORT = *le numéro de port de votre choix* 
     (verifiez aussi que l'appli front requète vers le même port) 
 
+    TOKEN_KEY 'chaineDeCaractèreAléatoirePourleCryptageDuJetonD'Authentification"
+
 2) Installer les modules node suivants depuis le dossier BACK:
 
 DÉPENDANCES REQUISES :
@@ -30,10 +32,6 @@ npm run start
 node server
     ou
 nodemon (si installé)
-
-************************   EN PHASE DE PRODUCTION  ************************
-Avant déploiement, la chaine 'RANDOM_TOKEN_SECRET' (ligne 6 du fichier auth.js et ligne 41 du controller users.js) 
-sera à remplacer par une chaine aléatoire plus longue.
 
 ************************   DÉTAILS DES ROUTES   ************************ 
 

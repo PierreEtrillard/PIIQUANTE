@@ -1,9 +1,13 @@
 const tokenManager = require("jsonwebtoken");
+// récupération de la clef de création de jeton de connection dans le fichier '.env'
+const dotenv = require("dotenv");
+dotenv.config()
+const tokenKey = process.env.TOKEN_KEY
 
 module.exports = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];//split extrait le token après le premiére espace (juste aprés le mot 'Bearer')
-    const decodedToken = tokenManager.verify(token, "RANDOM_TOKEN_SECRET");//"RANDOM_TOKEN_SECRET" à remplacer par une chaine aléatoire plus longue en phase de production
+    const decodedToken = tokenManager.verify(token, tokenKey);
     const userId = decodedToken.userId;
     req.auth = { userId: userId };
     next();
