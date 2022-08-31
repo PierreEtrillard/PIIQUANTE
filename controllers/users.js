@@ -1,14 +1,17 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/users");
 const tokenManager = require("jsonwebtoken");
+const validator = require("validator");
 // récupération de la clef de création de jeton de connection dans le fichier '.env'
 const dotenv = require("dotenv");
 dotenv.config();
 const tokenKey = process.env.TOKEN_KEY;
 
 exports.createUser = (req, res, next) => {
-  const regexValid = /^[A-Za-z0-9éïäëèà \-\.']{8,}/;
-  if (regexValid.test(req.body.password)) {
+  if (
+    validator.isEmail(req.body.email) &&
+    validator.isStrongPassword(req.body.password)
+  ) {
     //10 passes de cryptages du mot de passe envoyé
     bcrypt
       .hash(req.body.password, 10)
@@ -23,10 +26,9 @@ exports.createUser = (req, res, next) => {
   } else {
     res
       .status(400)
-      .json({
-        message:
-          "renseignez un mot de passe de 8 à 20 caractères et contenant minimum une majuscule, un chiffre et une minuscule",
-      });
+      .send(
+        "renseignez un mail valide et un mot de passe fort: 8 à 20 caractères et contenant minimum une majuscule, une minuscule, un chiffre et caractère spéciale "
+      );
   }
 };
 
