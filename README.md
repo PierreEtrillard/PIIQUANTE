@@ -26,13 +26,17 @@ Description des modules à installer :
                 multer (gestion des téléchargements de fichiers)
                 fs (gestionaire de fichiers)
 
-3) Pour démarrer le server saisissez :
+3) Pour démarrer le server saisissez dans la console soit:
 
 npm run start
     ou
 node server
     ou
 nodemon (si installé)
+************************    SUGGESTION FRONT    ************************
+L'Api est codée avec des messages d'erreurs respectueux de la rgpd et cohérants pour les utilisateurs.
+Ils sont accessible à la propriété res.error.error sur chaques routes.
+Utiliser ces feedback plutôt que la réponse server standard peut être une bonne pratique.  
 
 ************************   DÉTAILS DES ROUTES   ************************ 
 
