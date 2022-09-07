@@ -55,23 +55,28 @@ exports.createSauce = (req, res, next) => {
 
 exports.modifySauce = async (req, res, next) => {
   const sauceTargeted = await Sauce.findById(req.params.id);
-  let sauceUpdate = {};//Contiendra le corp de requète
-  //Test si la requète contient un fichier form/data (= stringifié par multer):
-  if (req.file) {
-    //supression de l'ancienne image.
-    let oldPic = sauceTargeted.imageUrl.split("/images/")[1];
-    fs.unlinkSync(`images/${oldPic}`);
-    //Parser la requète et mise à jour de l'URL de la nouvelle image
-    sauceUpdate = { ...JSON.parse(req.body.sauce) };
-    sauceUpdate.imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+  let sauceUpdate = {}; //Contiendra le corp de requète
+  const invalidUser = sauceTargeted.userId != req.auth.userId;
+  //si tentative de modification de la sauce d'un autre user:
+  if (invalidUser) {
+    res.satus(403).json({ message: "Non-autorisé !" });
   } else {
-    if (sauceTargeted.userId != req.auth.userId) {
-      //si tentative de modification de la sauce d'un autre user:
-      res.satus(403).json({ message: "Non-autorisé !" });
+    //Test si la requète contient un fichier form/data (= stringifié par multer):
+    if (req.file) {
+      //Parser la requète
+      sauceUpdate = { ...JSON.parse(req.body.sauce) };
+      //supression de l'ancienne image.
+      let oldPic = sauceTargeted.imageUrl.split("/images/")[1];
+      fs.unlinkSync(`images/${oldPic}`);
+      //mise à jour de l'URL de la nouvelle image
+      sauceUpdate.imageUrl = `${req.protocol}://${req.get("host")}/images/${
+        req.file.filename
+      }`;
     } else {
       sauceUpdate = { ...req.body };
     }
   }
+
   delete sauceUpdate.userId; //Ne pas faire confiance à l'userId de la requète !
   //Sauvegarde de la mise à jour dans la base de données:
   Sauce.updateOne(
