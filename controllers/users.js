@@ -20,16 +20,14 @@ exports.createUser = (req, res, next) => {
         user
           .save()
           .then(() => res.status(201).json({ message: "Compte créé !" }))
-          .catch((error) => res.status(400).json({ error }));
+          .catch((error) => res.status(500).json({ error }));
       })
-      .catch((error) => res.status(500).json({ error }));
   } else {
     res
       .status(400)
       .send(
         "renseignez un mail valide et un mot de passe fort: 8 à 20 caractères et contenant minimum une majuscule, une minuscule, un chiffre et caractère spéciale "
       );
-      console.log(JSON.stringify(res.error))
   }
 };
 
