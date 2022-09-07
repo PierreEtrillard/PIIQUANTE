@@ -119,9 +119,8 @@ exports.likeSauce = (req, res, next) => {
       let dislikersIds = sauce.usersDisliked.filter(
         (idList) => idList !== req.auth.userId
       );
-
       switch (req.body.like) {
-        case 1: // l'utilissateur like la sauce
+        case 1: // l'utilisateur like la sauce
           likersIds.push(req.auth.userId);
           break;
         case -1: // l'utilissateur dislike la sauce

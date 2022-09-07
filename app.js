@@ -9,7 +9,7 @@ const dotenv = require("dotenv");
 dotenv.config()
 const mongoPwd = process.env.mongoLogin
 
-mongoose.connect(`mongodb+srv://${mongoPwd}@pricipal.tpemf.mongodb.net/?retryWrites=true&w=majority`,{
+mongoose.connect(mongoPwd,{
     useNewUrlParser : true ,
     useUnifiedTopology :true
 })

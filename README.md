@@ -1,7 +1,7 @@
 ************************   PRÉPARATION DU SERVER  ************************
 
 1) Mettre le fichier .env à jour avec les données suivantes:
-    mongoLogin = "<votre nom d'utilisateur MongoDb>:<votre mot de passe MongoDb>"
+    mongoLogin = "<votre Mongo connection string>"
 
     //Par defaut le server tourne sur le port 3000, vous pouvez choisir un port différent en renseignant:
 
@@ -33,7 +33,9 @@ npm run start
 node server
     ou
 nodemon (si installé)
-************************    SUGGESTION FRONT    ************************
+************************    INDICATIONS FRONT    ************************
+Le mot de passe requis à l'inscription doit comporter au moins 8 caractères dont:
+1 majuscule, 1 minuscule et 1 chiffre.
 L'Api est codée avec des messages d'erreurs respectueux de la rgpd et cohérants pour les utilisateurs.
 Ils sont accessible à la propriété res.error.error sur chaques routes.
 Utiliser ces feedback plutôt que la réponse server standard peut être une bonne pratique.  

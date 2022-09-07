@@ -1,6 +1,6 @@
 #*** Renseignez correctement et décommentez les lignes suivantes et indiquez un port libre si le 3000 est déja utiliser:
 
-mongoLogin = 'franck:Mot2P@$$fictif'
+mongoLogin = 'votre connection string fournis par mongoose'
 
 #****! FACULTATIF : (uniquement si le port 3000 est déja utilisé)
 #*** Pensez aussi à mettre à jour l'appli front afin qu'elle requète sur le bon port si besoin...
